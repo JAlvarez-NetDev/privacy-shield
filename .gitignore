@@ -1,0 +1,5 @@
+config/pihole/
+pihole-FW-*.log
+.DS_Store
+Thumbs.db
+.env
