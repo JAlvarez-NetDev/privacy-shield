@@ -1,11 +1,11 @@
+version: "3"
+
 services:
   unbound:
     container_name: unbound
     image: klutchell/unbound:latest
     restart: unless-stopped
     hostname: unbound
-    volumes:
-      - ./config/unbound/unbound.conf:/opt/unbound/etc/unbound/unbound.conf:ro
     networks:
       privacy_net:
         ipv4_address: 10.10.10.2
@@ -20,16 +20,25 @@ services:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
-      - "8080:80/tcp"
+      # Web Interface mapped to 8080 to avoid conflicts
+      - "8080:80/tcp" 
+    # CRITICAL: Permissions for time and priority (Required for Pi-hole v6+)
+    cap_add:
+      - SYS_TIME
+      - SYS_NICE
     environment:
       - TZ=Europe/Madrid
-      - WEBPASSWORD=admin
+      # ⚠️ CHANGE THIS: Web access password
+      - WEBPASSWORD=change_me_please
       - PIHOLE_DNS_=10.10.10.2#53
       - DNSSEC=true
       - DNSMASQ_LISTENING=all
     volumes:
-      - ./config/pihole/etc-pihole:/etc/pihole
-      - ./config/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+      - ./etc-pihole:/etc/pihole
+      - ./etc-dnsmasq.d:/etc/dnsmasq.d
+      # TIME SYNC VOLUMES (Required for DNSSEC validation)
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     networks:
       privacy_net:
         ipv4_address: 10.10.10.3
